@@ -78,23 +78,18 @@ export class TelegramService implements OnModuleInit {
 
     this.client.addEventHandler(
       async (event: NewMessageEvent) => {
-        const isSingleMessage = 'message' in event && !event.message.groupedId;
-        const sender = await event.message?.getSender();
-        this.groupName = sender?.['username'] ?? 'Unknown';
+        console.log('New message event', event.message.message);
 
-        console.log(
-          `Message telegram:  ${event.message.message} from ${this.groupName}`,
-        );
-
-        if (!isSingleMessage) {
-          console.log('This is a grouped message.Error');
+        if (event.message.sender['bot']) {
+          console.log('This is message from bot.Error');
           return;
         }
+
         // FIND a SPECIFIC CONTRACT ADDRESS
         const contractAddress = await validateAddressFromMessage(event, true);
 
         if (contractAddress) {
-          return this.client.sendMessage('MevxTradingBot', {
+          return this.client.sendMessage(GROUP_ID.MY_GROUP_CHECK_CA, {
             message: `${contractAddress}`,
           });
         }
@@ -103,14 +98,13 @@ export class TelegramService implements OnModuleInit {
         const dexLink = extractLinkDexFromMessage(event.message.message);
 
         if (dexLink) {
-          return this.client.sendMessage('MevxTradingBot', {
+          return this.client.sendMessage(GROUP_ID.MY_GROUP_CHECK_CA, {
             message: `${dexLink}`,
           });
         }
       },
       new NewMessage({
-        chats: [GROUP_ID.KRATOS_VIP_X100],
-        forwards: false,
+        chats: [GROUP_ID.MY_GROUP_CHECK_CA],
       }),
     );
   }
